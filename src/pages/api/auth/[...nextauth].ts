@@ -8,56 +8,62 @@ export const authOptions: AuthOptions = {
 			clientSecret: process.env.CLIENT_SECRET!,
 			clientId: process.env.CLIENT_ID!,
 		}),
-		// CredentialProvider({
-		// 	name: 'Credentials',
-		// 	credentials: {
-		// 		email: { label: 'email', type: 'text', placeholder: 'example@example.com' },
-		// 		password: { label: 'Password', type: 'password' },
-		// 	},
-		// 	authorize(credentials) {
-		// 		const User = {
-		// 			name: 'felipe',
-		// 			email: 'felipe',
-		// 			id: 'felipe',
-		// 		};
-		// 		if (!credentials) {
-		// 			return null;
-		// 		}
-		// 		if (!(credentials?.email === 'felipe')) {
-		// 			return null;
-		// 		}
-
-		// 		if (!(credentials?.password === 'felipe')) {
-		// 			return null;
-		// 		}
-
-		// 		return User;
-		// 	},
-		// }),
+		CredentialProvider({
+			name: 'credentials',
+			type: 'credentials',
+			id: '1',
+			credentials: {
+				email: { label: 'email', placeholder: 'email', type: 'text' },
+				password: { label: 'password', placeholder: 'password', type: 'text' },
+			},
+			authorize(
+				credentials:
+					| ({ email?: string; password?: string } & Record<never, string>)
+					| undefined
+			) {
+				const user = {
+					name: 'felipe',
+					email: 'felipe',
+					id: '11502777932',
+				};
+				if (!credentials) {
+					console.error('Erro: Sem credenciais');
+					return null;
+				}
+				if (!(credentials?.email === 'felipe')) {
+					console.error('Erro: email invalido');
+					return null;
+				}
+				if (!(credentials?.password === 'felipe')) {
+					console.error('Erro: Password invalido');
+					return null;
+				}
+				return user;
+			},
+		}),
 	],
 	callbacks: {
-		session({ session, user, newSession, token, trigger }) {
-			console.log(
-				'==========session==========',
-				session,
-				'==========session=========='
-			);
-			console.log('==========user==========', user, '==========user==========');
-			console.log(
-				'==========newSession==========',
-				newSession,
-				'==========newSession=========='
-			);
-			console.log('==========token==========', token, '==========token==========');
-			console.log(
-				'==========trigger==========',
-				trigger,
-				'==========trigger=========='
-			);
-			return session;
+		jwt({ token, user }) {
+			if (user) {
+				token.id = user.id;
+			}
+			return token;
+		},
+		session({ session, token }) {
+			return {
+				...session,
+				user: {
+					...session.user,
+					id: token.id,
+					userName: token.userName,
+				},
+			};
 		},
 	},
-	secret: process.env.NEXTAUTH_SECRET,
+	// pages: {
+	// 	signIn: '/auth/signin',
+	// },
+	// secret: process.env.NEXTAUTH_SECRET,
 };
 
 export default NextAuth(authOptions);
